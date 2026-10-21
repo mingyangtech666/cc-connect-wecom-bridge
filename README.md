@@ -1,3 +1,27 @@
+# cc-connect-wecom-bridge
+
+> An enhanced Enterprise WeChat (WeCom) bridge fork of [chenhg5/cc-connect](https://github.com/chenhg5/cc-connect) v1.5.0, featuring compact count progress display, workspace privacy, and group authorization.
+
+## 🌟 Enhanced Features (v1.5.0-counted.4)
+
+1. **WeCom Tool Count Progress (`tool_count_progress = true`)**:
+   - Coalesces verbose tool call messages into a single live step-count progress card to prevent chat room spam.
+2. **Workspace Privacy (`show_workdir_indicator = false`)**:
+   - Hides local filesystem paths in footer indicators while keeping model and context metrics.
+3. **WeCom Group Authorization (`group_access`)**:
+   - Dynamic group allowlist managed by admin via `/invite group` and `/remove group`.
+4. **Session Writer Resilience**:
+   - Improved active-writer handling and graceful recovery for Codex and Claude Code sessions.
+
+## 🚀 Quick Download & Usage
+
+Prebuilt zero-dependency binaries are available on [GitHub Releases](https://github.com/mingyangtech666/cc-connect-wecom-bridge/releases/tag/v1.5.0-counted.4).
+
+- **Windows 64-bit**: Download `cc-connect-wecom-bridge-v1.5.0-counted.4-windows-amd64.zip`
+- **Linux 64-bit**: Download `cc-connect-wecom-bridge-v1.5.0-counted.4-linux-amd64.tar.gz`
+
+---
+
 <p align="center">
   <img src="./docs/images/banner.svg" alt="CC-Connect Banner" width="800"/>
 </p>

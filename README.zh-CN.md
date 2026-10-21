@@ -1,3 +1,45 @@
+# cc-connect-wecom-bridge
+
+> 本项目是基于 [chenhg5/cc-connect](https://github.com/chenhg5/cc-connect) v1.5.0 的企业微信（WeCom）深度优化与桥接改版，提供更紧凑的交互进度展示、敏感信息脱敏与群聊安全白名单控制。
+
+## 🌟 改版核心特性 (v1.5.0-counted.4)
+
+1. **企业微信工具调用计数与紧凑进度条 (`tool_count_progress = true`)**：
+   - 将繁杂的多步工具调用（代码执行、文件读写、网络请求等）聚合压缩为**单条实时动态计数卡片**，只展示当前步数与运行中状态，极大减少企微聊天卡片刷屏。
+2. **工作空间敏感路径脱敏 (`show_workdir_indicator = false`)**：
+   - 底部状态信息隐去服务器本地物理绝对路径，保障机器环境隐私，同时保留模型版本、上下文 Token 消耗等关键指标。
+3. **企业微信群聊安全白名单机制 (`group_access`)**：
+   - 企微群拉入机器人默认不可直接执行，防止非预期开销与越权。
+   - 管理员可在群内通过 `/invite group` 授权、`/remove group` 撤销群聊权限，白名单按 Bot 与项目隔离持久化。
+4. **会话锁与主动恢复优化**：
+   - 针对 Codex 与 Claude Code 在会话中断与重启时的 active-writer 冲突进行了安全兜底。
+
+## 🚀 极速下载与开箱即用
+
+可在 [Releases 页面](https://github.com/mingyangtech666/cc-connect-wecom-bridge/releases/tag/v1.5.0-counted.4) 直接下载开箱即用的预编译二进制包（无需安装 Go 或 Node.js 开发环境）：
+
+- **Windows 64位**：下载 `cc-connect-wecom-bridge-v1.5.0-counted.4-windows-amd64.zip` 解压即用。
+- **Linux 64位**：下载 `cc-connect-wecom-bridge-v1.5.0-counted.4-linux-amd64.tar.gz` 解压即用。
+
+### 一键下载运行
+
+**Windows (PowerShell)**:
+```powershell
+Invoke-WebRequest -Uri "https://github.com/mingyangtech666/cc-connect-wecom-bridge/releases/download/v1.5.0-counted.4/cc-connect-wecom-bridge-v1.5.0-counted.4-windows-amd64.zip" -OutFile "cc-connect.zip"
+Expand-Archive -Path "cc-connect.zip" -DestinationPath ".\cc-connect"
+cd .\cc-connect
+.\cc-connect.exe --version
+```
+
+**Linux / VPS (Bash)**:
+```bash
+curl -LO "https://github.com/mingyangtech666/cc-connect-wecom-bridge/releases/download/v1.5.0-counted.4/cc-connect-wecom-bridge-v1.5.0-counted.4-linux-amd64.tar.gz"
+tar -xzf cc-connect-wecom-bridge-v1.5.0-counted.4-linux-amd64.tar.gz
+./cc-connect --version
+```
+
+---
+
 <p align="center">
   <img src="./docs/images/banner.svg" alt="CC-Connect Banner" width="800"/>
 </p>
