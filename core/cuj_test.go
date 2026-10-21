@@ -1085,6 +1085,64 @@ var errSimDisconnect = &startSessionError{msg: "simulated ws disconnect"}
 // SPRINT 2 · A organization (basic conversation)
 // ===========================================================================
 
+// Group authorization: deny → admin invite → member task → revoke → deny.
+func TestCUJ_GroupAuthorization_AdminInvitesMembersUseAndRevokes(t *testing.T) {
+	p := &groupAccessTestPlatform{stubPlatformEngine: stubPlatformEngine{n: "test"}, enabled: true, groups: map[string]bool{}}
+	agent := &cujAgent{}
+	e := NewEngine("test", agent, []Platform{p}, "", LangEnglish)
+	e.SetAdminFrom("roman")
+	t.Cleanup(func() { e.Stop() })
+	send := func(user, group, text string) {
+		e.ReceiveMessage(p, &Message{SessionKey: "test:" + group + ":" + user, Platform: "test",
+			UserID: user, UserName: user, Content: text, ReplyCtx: group})
+	}
+	wantReply := func(part string) {
+		t.Helper()
+		got := p.getSent()
+		if len(got) == 0 || !strings.Contains(got[len(got)-1], part) {
+			t.Fatalf("want %q, replies=%v", part, got)
+		}
+	}
+	sendAgentTask := func(group, text string) {
+		t.Helper()
+		before := len(p.getSent())
+		send("member", group, text)
+		deadline := time.Now().Add(2 * time.Second)
+		for time.Now().Before(deadline) {
+			got := p.getSent()
+			sessions := e.sessions.ListSessions("test:" + group + ":member")
+			if len(got) > before && strings.Contains(got[len(got)-1], "ok") && len(sessions) > 0 && !sessions[0].Busy() {
+				return
+			}
+			time.Sleep(5 * time.Millisecond)
+		}
+		t.Fatalf("agent task in %q did not complete, replies=%v", group, p.getSent())
+	}
+	send("member", "group-a", "hello")
+	wantReply("This group is not authorized")
+	send("member", "group-a", "/invite group")
+	wantReply("requires admin privilege")
+	send("roman", "group-a", "/invite group")
+	wantReply("This group is authorized")
+	send("member", "group-a", "/help")
+	if strings.Contains(p.getSent()[len(p.getSent())-1], "not authorized") {
+		t.Fatal("approved member was blocked")
+	}
+	sendAgentTask("group-a", "hello in approved group")
+	send("member", "group-b", "hello")
+	wantReply("This group is not authorized")
+	send("roman", "group-a", "/remove group")
+	wantReply("authorization revoked")
+	send("member", "group-a", "/help")
+	wantReply("This group is not authorized")
+	// Private conversations keep their existing command and agent access.
+	send("member", "", "/help")
+	if strings.Contains(p.getSent()[len(p.getSent())-1], "not authorized") {
+		t.Fatal("private chat was blocked")
+	}
+	sendAgentTask("", "hello privately")
+}
+
 // CUJ-A1 · User sends first message → receives agent reply
 func TestCUJ_A1_FirstMessageGetsReply(t *testing.T) {
 	env := newCUJEnv(t)
@@ -1943,6 +2001,7 @@ func TestCUJ_I2_LegacyCardLinkedToIntegration(t *testing.T) {
 // CUJ-I3 · Display modes (quiet/compact/full) each produce expected output.
 func TestCUJ_I3_DisplayModesLinkedToIntegration(t *testing.T) {
 	t.Log("CUJ-I3: covered by release-gate TestCC_DISPLAY_01..06 (6 modes)")
+	t.Run("compact retains tool counts without commands", testCUJCompactToolCounts)
 }
 
 // CUJ-I4 · Streaming preview can be toggled on/off and takes effect

@@ -2794,6 +2794,9 @@ func (e *Engine) handleMessage(p Platform, msg *Message) {
 		e.handleMessageRecall(p, msg)
 		return
 	}
+	if e.handleGroupAccess(p, msg) {
+		return
+	}
 
 	slog.Info("message received",
 		"platform", msg.Platform, "msg_id", msg.MessageID,
@@ -4815,6 +4818,8 @@ func (e *Engine) processInteractiveEvents(state *interactiveState, session *Sess
 	}
 	sp := newStreamPreview(e.streamPreview, state.platform, state.replyCtx, e.ctx, workspaceRenderer)
 	cp := newCompactProgressWriter(e.ctx, state.platform, state.replyCtx, e.agent.Name(), e.i18n.CurrentLang(), workspaceRenderer)
+	counts := newToolCountProgressWriter(e.ctx, state.platform, state.replyCtx, e.i18n.CurrentLang(), !e.display.ToolMessages)
+	defer func() { counts.Finalize(ProgressCardStateFailed) }()
 	state.mu.Unlock()
 
 	// Send instant confirmation reply if enabled and no streaming card is active.
@@ -4999,6 +5004,9 @@ func (e *Engine) processInteractiveEvents(state *interactiveState, session *Sess
 
 		switch event.Type {
 		case EventThinking:
+			if event.PublicProgress && counts.AppendDescription(event.Content) {
+				break
+			}
 			if isEllipsisOnly(event.Content) {
 				break
 			}
@@ -5092,6 +5100,7 @@ func (e *Engine) processInteractiveEvents(state *interactiveState, session *Sess
 
 		case EventToolUse:
 			toolCount++
+			counts.Update(toolCount)
 			if hasRichCard {
 				// When tool messages are suppressed, skip card updates on tool events.
 				if !e.display.ToolMessages {
@@ -5268,6 +5277,9 @@ func (e *Engine) processInteractiveEvents(state *interactiveState, session *Sess
 			}
 
 		case EventText:
+			if event.PublicProgress && counts.AppendDescription(event.Content) {
+				break
+			}
 			content := event.Content
 			if e.display.HideAgentFooter {
 				content = stripAgentFooterLines(content)
@@ -5514,6 +5526,7 @@ func (e *Engine) processInteractiveEvents(state *interactiveState, session *Sess
 				continue
 			}
 			cp.Finalize(ProgressCardStateCompleted)
+			counts.Finalize(ProgressCardStateCompleted)
 			// Use state.agentSession.CurrentSessionID() instead of event.SessionID.
 			// event.SessionID may be empty in some cases, causing the agent_session_id
 			// to not be persisted to disk, breaking session resume on next startup.
@@ -5966,6 +5979,7 @@ func (e *Engine) processInteractiveEvents(state *interactiveState, session *Sess
 				}
 				sp = newStreamPreview(e.streamPreview, queued.platform, queued.replyCtx, e.ctx, queuedRenderer)
 				cp = newCompactProgressWriter(e.ctx, queued.platform, queued.replyCtx, e.agent.Name(), e.i18n.CurrentLang(), queuedRenderer)
+				counts = newToolCountProgressWriter(e.ctx, queued.platform, queued.replyCtx, e.i18n.CurrentLang(), !e.display.ToolMessages)
 
 				// Reset streaming card state for the next turn
 				streamCard = nil

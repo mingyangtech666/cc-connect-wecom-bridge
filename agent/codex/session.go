@@ -435,7 +435,7 @@ func (cs *codexSession) handleEvent(raw map[string]any) {
 	}
 }
 
-// flushPendingAsThinking emits all buffered agent_messages as EventThinking.
+// flushPendingAsThinking emits buffered public agent commentary, not reasoning.
 func (cs *codexSession) flushPendingAsThinking() {
 	if cs.ctx.Err() != nil {
 		return
@@ -444,7 +444,7 @@ func (cs *codexSession) flushPendingAsThinking() {
 		if cs.ctx.Err() != nil {
 			return
 		}
-		evt := core.Event{Type: core.EventThinking, Content: text}
+		evt := core.Event{Type: core.EventThinking, Content: text, PublicProgress: true}
 		select {
 		case cs.events <- evt:
 		case <-cs.ctx.Done():
@@ -454,16 +454,20 @@ func (cs *codexSession) flushPendingAsThinking() {
 	cs.pendingMsgs = cs.pendingMsgs[:0]
 }
 
-// flushPendingAsText emits all buffered agent_messages as EventText (final response).
+// Completed agent messages are whole messages, not deltas. At turn end the last
+// message is the final answer; earlier buffered messages are public commentary.
 func (cs *codexSession) flushPendingAsText() {
 	if cs.ctx.Err() != nil {
 		return
 	}
-	for _, text := range cs.pendingMsgs {
+	for i, text := range cs.pendingMsgs {
 		if cs.ctx.Err() != nil {
 			return
 		}
 		evt := core.Event{Type: core.EventText, Content: text}
+		if i < len(cs.pendingMsgs)-1 {
+			evt.PublicProgress = true
+		}
 		select {
 		case cs.events <- evt:
 		case <-cs.ctx.Done():
@@ -494,7 +498,7 @@ func (cs *codexSession) handleItemStarted(raw map[string]any) {
 		return
 	}
 
-	// Any non-message item is a tool use; flush pending messages as thinking first.
+	// Any non-message item is a tool use; flush pending public commentary first.
 	cs.flushPendingAsThinking()
 
 	switch itemType {
@@ -544,7 +548,16 @@ func (cs *codexSession) handleItemCompleted(raw map[string]any) {
 	case "agent_message", "message":
 		text := extractItemText(item, "content", "output_text")
 		if text != "" {
-			cs.pendingMsgs = append(cs.pendingMsgs, text)
+			phase, _ := item["phase"].(string)
+			if phase == "commentary" {
+				cs.flushPendingAsThinking()
+				select {
+				case cs.events <- core.Event{Type: core.EventThinking, Content: text, PublicProgress: true}:
+				case <-cs.ctx.Done():
+				}
+			} else {
+				cs.pendingMsgs = append(cs.pendingMsgs, text)
+			}
 		}
 
 	case "command_execution":

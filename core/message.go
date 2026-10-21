@@ -432,6 +432,7 @@ type UserQuestionOption struct {
 type Event struct {
 	Type                     EventType
 	Content                  string
+	PublicProgress           bool           // public agent commentary, never reasoning
 	ToolName                 string         // populated for EventToolUse, EventPermissionRequest
 	ToolInput                string         // human-readable summary of tool input
 	ToolInputRaw             map[string]any // raw tool input (for EventPermissionRequest, used in allow response)

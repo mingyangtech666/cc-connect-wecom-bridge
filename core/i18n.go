@@ -162,6 +162,9 @@ const (
 	MsgStarting                  MsgKey = "starting"
 	MsgThinking                  MsgKey = "thinking"
 	MsgTool                      MsgKey = "tool"
+	MsgToolCountRunning          MsgKey = "tool_count_running"
+	MsgToolCountCompleted        MsgKey = "tool_count_completed"
+	MsgToolCountInterrupted      MsgKey = "tool_count_interrupted"
 	MsgToolResult                MsgKey = "tool_result"
 	MsgToolResultFmtStatus       MsgKey = "tool_result_fmt_status"
 	MsgToolResultFmtExit         MsgKey = "tool_result_fmt_exit"
@@ -378,31 +381,31 @@ const (
 	MsgCronIDLabel               MsgKey = "cron_id_label"
 	MsgCronFailedSuffix          MsgKey = "cron_failed_suffix"
 
-	MsgTimerNotAvailable  MsgKey = "timer_not_available"
-	MsgTimerUsage         MsgKey = "timer_usage"
-	MsgTimerAddUsage      MsgKey = "timer_add_usage"
-	MsgTimerAdded         MsgKey = "timer_added"
-	MsgTimerAddedExec     MsgKey = "timer_added_exec"
-	MsgTimerAddExecUsage  MsgKey = "timer_addexec_usage"
-	MsgTimerEmpty         MsgKey = "timer_empty"
-	MsgTimerListTitle     MsgKey = "timer_list_title"
-	MsgTimerListFooter    MsgKey = "timer_list_footer"
-	MsgTimerDelUsage      MsgKey = "timer_del_usage"
-	MsgTimerMuteUsage     MsgKey = "timer_mute_usage"
-	MsgTimerDeleted       MsgKey = "timer_deleted"
-	MsgTimerNotFound      MsgKey = "timer_not_found"
-	MsgTimerMuted         MsgKey = "timer_muted"
-	MsgTimerUnmuted       MsgKey = "timer_unmuted"
-	MsgTimerCardHint      MsgKey = "timer_card_hint"
-	MsgTimerBtnMute       MsgKey = "timer_btn_mute"
-	MsgTimerBtnUnmute     MsgKey = "timer_btn_unmute"
-	MsgTimerBtnDelete     MsgKey = "timer_btn_delete"
-	MsgTimerIDLabel       MsgKey = "timer_id_label"
-	MsgTimerScheduledLabel MsgKey = "timer_scheduled_label"
-	MsgTimerFailedSuffix  MsgKey = "timer_failed_suffix"
-	MsgCommandsTagAgent          MsgKey = "commands_tag_agent"
-	MsgCommandsTagShell          MsgKey = "commands_tag_shell"
-	MsgUpgradeTimeoutSuffix      MsgKey = "upgrade_timeout_suffix"
+	MsgTimerNotAvailable    MsgKey = "timer_not_available"
+	MsgTimerUsage           MsgKey = "timer_usage"
+	MsgTimerAddUsage        MsgKey = "timer_add_usage"
+	MsgTimerAdded           MsgKey = "timer_added"
+	MsgTimerAddedExec       MsgKey = "timer_added_exec"
+	MsgTimerAddExecUsage    MsgKey = "timer_addexec_usage"
+	MsgTimerEmpty           MsgKey = "timer_empty"
+	MsgTimerListTitle       MsgKey = "timer_list_title"
+	MsgTimerListFooter      MsgKey = "timer_list_footer"
+	MsgTimerDelUsage        MsgKey = "timer_del_usage"
+	MsgTimerMuteUsage       MsgKey = "timer_mute_usage"
+	MsgTimerDeleted         MsgKey = "timer_deleted"
+	MsgTimerNotFound        MsgKey = "timer_not_found"
+	MsgTimerMuted           MsgKey = "timer_muted"
+	MsgTimerUnmuted         MsgKey = "timer_unmuted"
+	MsgTimerCardHint        MsgKey = "timer_card_hint"
+	MsgTimerBtnMute         MsgKey = "timer_btn_mute"
+	MsgTimerBtnUnmute       MsgKey = "timer_btn_unmute"
+	MsgTimerBtnDelete       MsgKey = "timer_btn_delete"
+	MsgTimerIDLabel         MsgKey = "timer_id_label"
+	MsgTimerScheduledLabel  MsgKey = "timer_scheduled_label"
+	MsgTimerFailedSuffix    MsgKey = "timer_failed_suffix"
+	MsgCommandsTagAgent     MsgKey = "commands_tag_agent"
+	MsgCommandsTagShell     MsgKey = "commands_tag_shell"
+	MsgUpgradeTimeoutSuffix MsgKey = "upgrade_timeout_suffix"
 
 	MsgCronScheduleLabel MsgKey = "cron_schedule_label"
 	MsgCronNextRunLabel  MsgKey = "cron_next_run_label"
@@ -509,14 +512,20 @@ const (
 
 	MsgCommandTimeout MsgKey = "command_timeout"
 
-	MsgBannedWordBlocked MsgKey = "banned_word_blocked"
-	MsgCommandDisabled   MsgKey = "command_disabled"
-	MsgAdminRequired     MsgKey = "admin_required"
-	MsgRateLimited       MsgKey = "rate_limited"
-	MsgPsSent            MsgKey = "ps_sent"
-	MsgPsSendFailed      MsgKey = "ps_send_failed"
-	MsgPsEmpty           MsgKey = "ps_empty"
-	MsgPsNoSession       MsgKey = "ps_no_session"
+	MsgBannedWordBlocked     MsgKey = "banned_word_blocked"
+	MsgCommandDisabled       MsgKey = "command_disabled"
+	MsgAdminRequired         MsgKey = "admin_required"
+	MsgGroupAccessDenied     MsgKey = "group_access_denied"
+	MsgGroupAccessUsage      MsgKey = "group_access_usage"
+	MsgGroupAccessGroupOnly  MsgKey = "group_access_group_only"
+	MsgGroupAccessAdded      MsgKey = "group_access_added"
+	MsgGroupAccessRemoved    MsgKey = "group_access_removed"
+	MsgGroupAccessSaveFailed MsgKey = "group_access_save_failed"
+	MsgRateLimited           MsgKey = "rate_limited"
+	MsgPsSent                MsgKey = "ps_sent"
+	MsgPsSendFailed          MsgKey = "ps_send_failed"
+	MsgPsEmpty               MsgKey = "ps_empty"
+	MsgPsNoSession           MsgKey = "ps_no_session"
 
 	MsgWhoamiTitle     MsgKey = "whoami_title"
 	MsgWhoamiCardTitle MsgKey = "whoami_card_title"
@@ -666,6 +675,27 @@ var messages = map[MsgKey]map[Language]string{
 		LangTraditionalChinese: "🔧 **工具 #%d: %s**\n---\n%s",
 		LangJapanese:           "🔧 **ツール #%d: %s**\n---\n%s",
 		LangSpanish:            "🔧 **Herramienta #%d: %s**\n---\n%s",
+	},
+	MsgToolCountRunning: {
+		LangEnglish:            "⏳ Working | Tool calls: %d",
+		LangChinese:            "⏳ 正在处理｜工具调用%d次",
+		LangTraditionalChinese: "⏳ 正在處理｜工具呼叫%d次",
+		LangJapanese:           "⏳ 処理中｜ツール呼び出し%d回",
+		LangSpanish:            "⏳ En proceso | Llamadas: %d",
+	},
+	MsgToolCountCompleted: {
+		LangEnglish:            "✅ Completed | Tool calls: %d",
+		LangChinese:            "✅ 处理完成｜共调用%d次",
+		LangTraditionalChinese: "✅ 處理完成｜共呼叫%d次",
+		LangJapanese:           "✅ 完了｜ツール呼び出し%d回",
+		LangSpanish:            "✅ Completado | Llamadas: %d",
+	},
+	MsgToolCountInterrupted: {
+		LangEnglish:            "⚠️ Interrupted | Tool calls: %d",
+		LangChinese:            "⚠️ 处理中断｜已调用%d次",
+		LangTraditionalChinese: "⚠️ 處理中斷｜已呼叫%d次",
+		LangJapanese:           "⚠️ 中断｜ツール呼び出し%d回",
+		LangSpanish:            "⚠️ Interrumpido | Llamadas: %d",
 	},
 	MsgToolResult: {
 		LangEnglish:            "📤 **%s**\n---\n%s",
@@ -3337,6 +3367,48 @@ var messages = map[MsgKey]map[Language]string{
 		LangTraditionalChinese: "🔒 命令 `%s` 需要管理員權限。請在配置中設定 `admin_from` 來授權使用者。",
 		LangJapanese:           "🔒 コマンド `%s` には管理者権限が必要です。設定で `admin_from` を設定してユーザーを承認してください。",
 		LangSpanish:            "🔒 El comando `%s` requiere privilegios de administrador. Configure `admin_from` en la configuración.",
+	},
+	MsgGroupAccessDenied: {
+		LangEnglish:            "🔒 This group is not authorized. Ask a bot administrator to send `/invite group` here.",
+		LangChinese:            "🔒 本群尚未授权，请机器人管理员在本群发送 `/invite group`。",
+		LangTraditionalChinese: "🔒 本群尚未授權，請機器人管理員在本群傳送 `/invite group`。",
+		LangJapanese:           "🔒 このグループは未承認です。ボット管理者がここで `/invite group` を送信してください。",
+		LangSpanish:            "🔒 Este grupo no está autorizado. Pida a un administrador del bot que envíe `/invite group` aquí.",
+	},
+	MsgGroupAccessUsage: {
+		LangEnglish:            "Use `/invite group` to authorize the current group, or `/remove group` to revoke access.",
+		LangChinese:            "在目标群发送 `/invite group` 授权，或 `/remove group` 撤销授权。",
+		LangTraditionalChinese: "在目標群傳送 `/invite group` 授權，或 `/remove group` 撤銷授權。",
+		LangJapanese:           "対象グループで `/invite group` を送信して承認し、`/remove group` で取り消します。",
+		LangSpanish:            "Use `/invite group` para autorizar el grupo actual o `/remove group` para revocar el acceso.",
+	},
+	MsgGroupAccessGroupOnly: {
+		LangEnglish:            "Send this command in the group you want to manage.",
+		LangChinese:            "请在需要管理的群聊内发送此命令。",
+		LangTraditionalChinese: "請在需要管理的群聊內傳送此命令。",
+		LangJapanese:           "管理するグループ内でこのコマンドを送信してください。",
+		LangSpanish:            "Envíe este comando en el grupo que desea administrar.",
+	},
+	MsgGroupAccessAdded: {
+		LangEnglish:            "✅ This group is authorized. Group members can now use the bot.",
+		LangChinese:            "✅ 本群已加入白名单，群成员现在可以使用机器人。",
+		LangTraditionalChinese: "✅ 本群已加入白名單，群成員現在可以使用機器人。",
+		LangJapanese:           "✅ このグループを承認しました。メンバーがボットを利用できます。",
+		LangSpanish:            "✅ Grupo autorizado. Sus miembros ya pueden usar el bot.",
+	},
+	MsgGroupAccessRemoved: {
+		LangEnglish:            "✅ Group authorization revoked. New requests in this group are blocked.",
+		LangChinese:            "✅ 已撤销本群授权，停止受理本群的新请求。",
+		LangTraditionalChinese: "✅ 已撤銷本群授權，停止受理本群的新請求。",
+		LangJapanese:           "✅ グループの承認を取り消しました。新しいリクエストは受け付けません。",
+		LangSpanish:            "✅ Autorización revocada. Se bloquearán las nuevas solicitudes de este grupo.",
+	},
+	MsgGroupAccessSaveFailed: {
+		LangEnglish:            "⚠️ Authorization could not be saved. Access remains unchanged; please try again later.",
+		LangChinese:            "⚠️ 授权保存失败，权限保持原状，请稍后重试。",
+		LangTraditionalChinese: "⚠️ 授權儲存失敗，權限維持原狀，請稍後重試。",
+		LangJapanese:           "⚠️ 承認を保存できませんでした。権限は変更されていません。後でもう一度お試しください。",
+		LangSpanish:            "⚠️ No se pudo guardar la autorización. Los permisos no han cambiado; inténtelo más tarde.",
 	},
 	MsgRateLimited: {
 		LangEnglish:            "⏳ You are sending messages too fast. Please wait a moment.",

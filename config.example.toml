@@ -1441,7 +1441,9 @@ app_secret = "your-feishu-app-secret"
 # mode = "websocket"
 # bot_id = "your-bot-id"
 # bot_secret = "your-bot-secret"
+# tool_count_progress = false  # One count-only progress stream when tool details are hidden / 隐藏工具详情时显示一条调用计数
 # allow_from = "*"  # Allowed user IDs / 允许的用户 ID
+# group_allowlist = false  # Require admin /invite group in each group; /remove group revokes it. DMs keep allow_from. / 启用后由 admin_from 管理员在群内授权，私聊沿用 allow_from
 
 # Weixin personal (ilink bot) / 微信个人号（ilink 机器人网关）
 # Same HTTP API as OpenClaw @tencent-weixin/openclaw-weixin: long-poll getUpdates + sendMessage.

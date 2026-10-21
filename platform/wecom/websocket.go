@@ -25,18 +25,20 @@ const (
 // WSPlatform implements core.Platform using the WeChat Work WebSocket long-connection
 // mode (智能机器人长连接). No public URL, no message encryption, no IP allowlist required.
 type WSPlatform struct {
-	botID       string
-	secret      string
-	allowFrom   string
-	conn        *websocket.Conn
-	handler     core.MessageHandler
-	ctx         context.Context
-	cancel      context.CancelFunc
-	mu          sync.Mutex // protects conn writes
-	dedup       core.MessageDedup
-	reqSeq      atomic.Int64 // monotonic counter for generating unique req_id
-	missedPong  atomic.Int32 // consecutive heartbeat acks not received
-	pendingAcks sync.Map     // req_id -> chan wsAckResult, for sequential send with ack waiting
+	botID             string
+	secret            string
+	allowFrom         string
+	toolCountProgress bool
+	groupAllowlist    *groupAllowlist
+	conn              *websocket.Conn
+	handler           core.MessageHandler
+	ctx               context.Context
+	cancel            context.CancelFunc
+	mu                sync.Mutex // protects conn writes
+	dedup             core.MessageDedup
+	reqSeq            atomic.Int64 // monotonic counter for generating unique req_id
+	missedPong        atomic.Int32 // consecutive heartbeat acks not received
+	pendingAcks       sync.Map     // req_id -> chan wsAckResult, for sequential send with ack waiting
 }
 
 const (
@@ -124,11 +126,18 @@ func newWebSocket(opts map[string]any) (core.Platform, error) {
 		return nil, fmt.Errorf("wecom-ws: bot_id and bot_secret are required for websocket mode")
 	}
 	allowFrom, _ := opts["allow_from"].(string)
+	toolCountProgress, _ := opts["tool_count_progress"].(bool)
+	groups, err := loadGroupAllowlist(opts, botID)
+	if err != nil {
+		return nil, err
+	}
 
 	return &WSPlatform{
-		botID:     botID,
-		secret:    secret,
-		allowFrom: allowFrom,
+		botID:             botID,
+		secret:            secret,
+		allowFrom:         allowFrom,
+		toolCountProgress: toolCountProgress,
+		groupAllowlist:    groups,
 	}, nil
 }
 
@@ -379,7 +388,7 @@ func (p *WSPlatform) handleMsgCallback(frame wsFrame) {
 	}
 
 	chatID := body.ChatID
-	if chatID == "" {
+	if chatID == "" && body.ChatType != "group" {
 		chatID = body.From.UserID
 	}
 	rctx := wsReplyContext{
@@ -409,6 +418,17 @@ func (p *WSPlatform) handleMsgCallback(frame wsFrame) {
 
 	current, quoted := wsCollectInboundParts(&body)
 	quotedContent := formatWSQuotedContent(quoted)
+	if _, allowed := p.GroupAccess(rctx); !allowed {
+		// Let the engine authorize management commands or reject the message
+		// before downloading any attachments from an unapproved group.
+		content := stripWeComAtMentions(strings.Join(current.content, "\n"), p.botID, body.AibotID)
+		go p.handler(p, &core.Message{
+			SessionKey: sessionKey, Platform: "wecom", MessageID: body.MsgID,
+			UserID: body.From.UserID, UserName: body.From.UserID,
+			ChatName: chatName, Content: content, ReplyCtx: rctx,
+		})
+		return
+	}
 
 	switch body.MsgType {
 	case "voice":

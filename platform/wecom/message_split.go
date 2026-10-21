@@ -58,6 +58,9 @@ func splitCandidates(s string, maxBytes int) byteSplitCandidates {
 			size = 1
 		}
 		next := i + size
+		if next > maxBytes {
+			break
+		}
 		switch {
 		case r == '\n' && prevNewline:
 			candidates.paragraphs = append(candidates.paragraphs, next)

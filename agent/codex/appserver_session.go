@@ -1214,9 +1214,15 @@ func (s *appServerSession) handleItemCompleted(item map[string]any) {
 	case "agentMessage":
 		text, _ := item["text"].(string)
 		if strings.TrimSpace(text) != "" {
-			s.stateMu.Lock()
-			s.pendingMsgs = append(s.pendingMsgs, text)
-			s.stateMu.Unlock()
+			phase, _ := item["phase"].(string)
+			if phase == "commentary" {
+				s.flushPendingAsThinking()
+				s.emit(core.Event{Type: core.EventThinking, Content: text, PublicProgress: true})
+			} else {
+				s.stateMu.Lock()
+				s.pendingMsgs = append(s.pendingMsgs, text)
+				s.stateMu.Unlock()
+			}
 		}
 
 	case "commandExecution":
@@ -1528,7 +1534,7 @@ func (s *appServerSession) flushPendingAsThinking() {
 
 	for _, text := range msgs {
 		if strings.TrimSpace(text) != "" {
-			s.emit(core.Event{Type: core.EventThinking, Content: text})
+			s.emit(core.Event{Type: core.EventThinking, Content: text, PublicProgress: true})
 		}
 	}
 }
@@ -1539,9 +1545,13 @@ func (s *appServerSession) flushPendingAsText() {
 	s.pendingMsgs = s.pendingMsgs[:0]
 	s.stateMu.Unlock()
 
-	for _, text := range msgs {
+	for i, text := range msgs {
 		if strings.TrimSpace(text) != "" {
-			s.emit(core.Event{Type: core.EventText, Content: text})
+			event := core.Event{Type: core.EventText, Content: text}
+			if i < len(msgs)-1 {
+				event.PublicProgress = true
+			}
+			s.emit(event)
 		}
 	}
 }
